@@ -1,5 +1,6 @@
 namespace D4P.CCMS.Environment;
 
+using D4P.CCMS.Environment;
 using System.Security.Authentication;
 using D4P.CCMS.Tenant;
 using D4P.CCMS.Setup;
@@ -151,6 +152,17 @@ codeunit 62000 "D4P BC Environment Mgt"
         end;
     end;
 
+    procedure GetInstalledApps()
+    var
+        D4PBCEnvironment: Record "D4P BC Environment";
+    begin
+        if not D4PBCEnvironment.FindSet() then
+            exit;
+        repeat
+            GetInstalledApps(D4PBCEnvironment);
+        until D4PBCEnvironment.Next() = 0;
+    end;
+
     procedure GetInstalledApps(var BCEnvironment: Record "D4P BC Environment")
     var
         BCInstalledApps: Record "D4P BC Installed Apps";
@@ -221,7 +233,7 @@ codeunit 62000 "D4P BC Environment Mgt"
                     case LowerCase(JsonValue.AsText()) of
                         'global':
                             BCInstalledApps."App Type" := Enum::"D4P App Type"::Global;
-                        'pte':
+                        'pte', 'tenant':
                             BCInstalledApps."App Type" := Enum::"D4P App Type"::PTE;
                         'dev':
                             BCInstalledApps."App Type" := Enum::"D4P App Type"::DEV;
@@ -403,7 +415,19 @@ codeunit 62000 "D4P BC Environment Mgt"
                 Error(FailedToFetchErr, ResponseText);
     end;
 
-    procedure GetAvailableAppUpdates(var BCEnvironment: Record "D4P BC Environment")
+    procedure GetAvailableAppUpdates()
+
+    var
+        BCEnvironment: Record "D4P BC Environment";
+    begin
+        if not BCEnvironment.FindSet() then
+            exit;
+        repeat
+            GetAvailableAppUpdates(BCEnvironment, false);
+        until BCEnvironment.Next() = 0;
+    end;
+
+    procedure GetAvailableAppUpdates(var BCEnvironment: Record "D4P BC Environment"; ShowMessage: Boolean)
     var
         BCInstalledApps: Record "D4P BC Installed Apps";
         BCTenant: Record "D4P BC Tenant";
@@ -455,10 +479,12 @@ codeunit 62000 "D4P BC Environment Mgt"
                     BCInstalledApps.Modify();
                 end;
             end;
-            Message(AvailableUpdatesFetchedMsg);
+            if ShowMessage and GuiAllowed then
+                Message(AvailableUpdatesFetchedMsg);
         end
         else
-            Message(NoAvailableUpdatesMsg);
+            if ShowMessage and GuiAllowed then
+                Message(NoAvailableUpdatesMsg);
     end;
 
     procedure UpdateApp(var BCEnvironment: Record "D4P BC Environment"; AppId: Guid; showNotification: Boolean)

@@ -327,7 +327,7 @@ page 62004 "D4P BC Environment Card"
                     EnvironmentManagement: Codeunit "D4P BC Environment Mgt";
                 begin
                     BCTenant.Get(Rec."Customer No.", Rec."Tenant ID");
-                    EnvironmentManagement.GetAvailableAppUpdates(Rec);
+                    EnvironmentManagement.GetAvailableAppUpdates(Rec, true);
                 end;
             }
             action(CopyEnvironment)
